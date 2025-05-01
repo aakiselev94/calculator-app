@@ -8,9 +8,10 @@ import ru.akiselev.calculator.client.client.dto.Operand;
 import ru.akiselev.calculator.client.utils.JsonUtils;
 
 import java.lang.reflect.Type;
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
+import java.util.Map;
+import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
+import java.util.stream.StreamSupport;
 
 public class OperandDecoder implements Decoder {
 
@@ -18,12 +19,18 @@ public class OperandDecoder implements Decoder {
     private static final String VAR = "var";
     private static final String SYMBOL = "symbol";
     private static final String ARGS = "args";
-    private static final String PLUS = "+";
-    private static final String MINUS = "-";
-    private static final String MUL = "*";
-    private static final String DIV = "/";
-    private static final String BRACKETS = "()";
-    private static final String UNARY_MINUS = "--";
+
+    private static final Map<String, BinaryOperator<Double>> BINARY_OPERATORS = Map.of(
+            "+", Double::sum,
+            "-", (a, b) -> a - b,
+            "*", (a, b) -> a * b,
+            "/", (a, b) -> a / b
+    );
+
+    private static final Map<String, UnaryOperator<Double>> UNARY_OPERATORS = Map.of(
+            "()", a -> a,
+            "--", a -> --a
+    );
 
     @Override
     public Operand decode(Response response, Type type) throws FeignException {
@@ -33,37 +40,21 @@ public class OperandDecoder implements Decoder {
 
     private Operand parse(final JsonNode node) {
         if (node.has(SYMBOL) && node.has(ARGS)) {
-            final JsonNode val = node.get(SYMBOL);
-            final JsonNode args = node.get(ARGS);
-
-            final List<Operand> operands = newArrayList();
-            args.elements().forEachRemaining(e -> {
-                final Operand operand = parse(e);
-                operands.add(operand);
-            });
-
-            final String operator = val.asText();
-            return switch (operator) {
-                case PLUS -> Operand.binary(PLUS, (a, b) -> a + b, operands);
-                case MINUS -> Operand.binary(MINUS, (a, b) -> a - b, operands);
-                case MUL -> Operand.binary(MUL, (a, b) -> a * b, operands);
-                case DIV -> Operand.binary(DIV, (a, b) -> a / b, operands);
-                case BRACKETS -> Operand.unary(BRACKETS, a -> a, operands);
-                case UNARY_MINUS -> Operand.unary(UNARY_MINUS, a -> a--, operands);
-                default -> Operand.empty();
-            };
+            var operands = StreamSupport.stream(node.get(ARGS).spliterator(), false)
+                    .map(this::parse)
+                    .toList();
+            var operator = node.get(SYMBOL).asText();
+            if (BINARY_OPERATORS.containsKey(operator)) {
+                return Operand.binary(operator, BINARY_OPERATORS.get(operator), operands);
+            } else if (UNARY_OPERATORS.containsKey(operator)) {
+                return Operand.unary(operator, UNARY_OPERATORS.get(operator), operands);
+            } else {
+                return Operand.empty();
+            }
         } else if (node.has(VAL)) {
-
-            final JsonNode val = node.get(VAL);
-            final String value = val.asText();
-            return Operand.number(Double.parseDouble(value));
-
+            return Operand.number(node.get(VAL).asDouble());
         } else if (node.has(VAR)) {
-
-            final JsonNode var = node.get(VAR);
-            final String value = var.asText();
-            return Operand.variable(value);
-
+            return Operand.variable(node.get(VAR).asText());
         }
         return Operand.empty();
     }

@@ -6,14 +6,14 @@ import com.google.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.akiselev.calculator.client.client.ExpressionClient;
+import ru.akiselev.calculator.client.client.dto.BinaryExpr;
+import ru.akiselev.calculator.client.client.dto.Expr;
 import ru.akiselev.calculator.client.client.dto.Operand;
+import ru.akiselev.calculator.client.client.dto.UnaryExpr;
+import ru.akiselev.calculator.client.client.dto.Variable;
 import ru.akiselev.calculator.client.dto.ExpressionRequest;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 @Slf4j
 @Singleton
@@ -22,44 +22,30 @@ public class ExpressionService {
 
     private final ExpressionClient expressionClient;
 
-    public double evaluateExpr(final ExpressionRequest request) {
+    public double evaluateExpr(ExpressionRequest request) {
         Preconditions.checkNotNull(request, "Expression request can't be null.");
         Preconditions.checkNotNull(request.getExpression(), "Expression can't be null.");
-        final Operand expr = expressionClient.buildExpression(request.getExpression());
-        log.info(format("Expression: %s", expr));
+        Operand expr = expressionClient.buildExpression(request.getExpression());
         return substituteVariables(expr, request.getParams()).evaluate();
     }
 
-    private Operand substituteVariables(final Operand operand, final Map<String, Double> params) {
+    private Operand substituteVariables(Operand operand, Map<String, Double> params) {
         Preconditions.checkNotNull(params, "Parameters can't be null.");
         Preconditions.checkNotNull(operand, "Expression can't be null");
-
-        switch (operand) {
-            case Operand.Expr expr -> {
-                final List<Operand> args = expr.args()
-                        .stream()
-                        .map(arg -> substituteVariables(arg, params))
-                        .collect(Collectors.toList());
-                switch (expr) {
-                    case Operand.BinaryExpr binaryExpr:
-
-                        return Operand.binary(binaryExpr.symbol(), binaryExpr.getOperator(), args);
-
-                    case Operand.UnaryExpr unaryExpr:
-
-                        return Operand.unary(unaryExpr.symbol(), unaryExpr.getOperator(), args);
-
-                    default:
-                        break;
-                }
-            }
-            case Operand.Variable variable -> {
-                if (params.containsKey(variable.getVar())) {
-                    return Operand.number(params.get(variable.getVar()));
-                }
+        if (operand instanceof Variable variable) {
+            if (!params.containsKey(variable.var())) {
                 return operand;
             }
-            default -> {
+            return Operand.number(params.get(variable.var()));
+        } else if (operand instanceof Expr expr) {
+            var args = expr.args()
+                    .stream()
+                    .map(arg -> substituteVariables(arg, params))
+                    .toList();
+            if (expr instanceof BinaryExpr binaryExpr) {
+                return Operand.binary(binaryExpr.symbol(), binaryExpr.operator(), args);
+            } else if (expr instanceof UnaryExpr unaryExpr) {
+                return Operand.unary(unaryExpr.symbol(), unaryExpr.operator(), args);
             }
         }
         return operand;

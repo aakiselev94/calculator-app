@@ -1,10 +1,10 @@
 package ru.akiselev.calculator.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.dropwizard.Configuration;
+import io.dropwizard.core.Configuration;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 public class CalculatorClientConfiguration extends Configuration {
     @Valid

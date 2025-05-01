@@ -1,10 +1,11 @@
 apply plugin: 'antlr'
 
 dependencies {
-    implementation group: 'com.google.inject', name: 'guice', version: googleGuiceVersion
-    implementation group: 'ru.vyarus', name: 'dropwizard-guicey', version: dropwizardGuiceVersion
+    implementation group: 'com.google.inject', name: 'guice', version: '7.0.0'
+    implementation group: 'ru.vyarus', name: 'dropwizard-guicey', version: '7.1.4'
     implementation group: 'io.dropwizard', name: 'dropwizard-core', version: dropwizardVersion
     compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+    compileOnly("jakarta.platform:jakarta.jakartaee-api:11.0.0-RC1")
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
     antlr group: 'org.antlr', name: 'antlr4', version: antlrVersion
 }
@@ -13,7 +14,7 @@ compileJava.dependsOn(generateGrammarSource)
 
 jib {
     from {
-        image = 'openjdk:17'
+        image = 'openjdk:21'
     }
     to {
         image = 'localhost:5000/calculator-service'
