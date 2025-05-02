@@ -26,7 +26,7 @@ public class CalculatorClientApp extends Application<CalculatorClientConfigurati
     }
 
     @Override
-    public void initialize(final Bootstrap<CalculatorClientConfiguration> bootstrap) {
+    public void initialize(Bootstrap<CalculatorClientConfiguration> bootstrap) {
         bootstrap.addBundle(GuiceBundle.builder()
                         .enableAutoConfig(getClass().getPackage().getName())
                         .modules(new CalculatorClientModule())

@@ -16,6 +16,5 @@ public sealed interface Expr extends Operand permits BinaryExpr, UnaryExpr {
         List<Operand> args = args();
         Preconditions.checkNotNull(args, "Args cannot be null!");
         Preconditions.checkState(numberOfArgs() == args.size(), "Number of arguments should be equal to " + numberOfArgs() + ".");
-
     }
 }

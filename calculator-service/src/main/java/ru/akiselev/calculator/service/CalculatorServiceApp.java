@@ -14,7 +14,7 @@ public class CalculatorServiceApp extends Application<CalculatorServiceConfigura
     }
 
     @Override
-    public void run(final CalculatorServiceConfiguration configuration, final Environment environment) {
+    public void run(CalculatorServiceConfiguration configuration, Environment environment) {
         environment.healthChecks().register("AppHealthCheck", new AppHealthCheck());
     }
 
@@ -24,11 +24,12 @@ public class CalculatorServiceApp extends Application<CalculatorServiceConfigura
     }
 
     @Override
-    public void initialize(final Bootstrap<CalculatorServiceConfiguration> bootstrap) {
-        bootstrap.addBundle(GuiceBundle.builder()
-                        .enableAutoConfig(getClass().getPackage().getName())
-                        .modules(new CalculatorServiceModule())
-                .build());
+    public void initialize(Bootstrap<CalculatorServiceConfiguration> bootstrap) {
+        var bundle = GuiceBundle.builder()
+                .enableAutoConfig(getClass().getPackage().getName())
+                .modules(new CalculatorServiceModule())
+                .build();
+        bootstrap.addBundle(bundle);
         bootstrap.setConfigurationSourceProvider(new ResourceConfigurationSourceProvider());
     }
 }

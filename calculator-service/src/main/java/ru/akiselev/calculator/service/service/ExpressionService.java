@@ -14,7 +14,6 @@ import ru.akiselev.calculator.service.CalculatorParser.MultiplyContext;
 import ru.akiselev.calculator.service.CalculatorParser.OperandContext;
 import ru.akiselev.calculator.service.CalculatorParser.PlusContext;
 import ru.akiselev.calculator.service.CalculatorParser.UnaryMinusContext;
-import ru.akiselev.calculator.service.dto.Expr;
 import ru.akiselev.calculator.service.dto.Operand;
 
 import static org.apache.commons.lang3.StringUtils.isNumeric;
@@ -23,10 +22,10 @@ import static org.apache.commons.lang3.StringUtils.isNumeric;
 public class ExpressionService {
 
     public Operand buildExpression(String expression) {
-        CalculatorLexer lexer = new CalculatorLexer(CharStreams.fromString(expression));
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        CalculatorParser parser = new CalculatorParser(tokens);
-        ParseTree tree = parser.expression();
+        var lexer = new CalculatorLexer(CharStreams.fromString(expression));
+        var tokens = new CommonTokenStream(lexer);
+        var parser = new CalculatorParser(tokens);
+        var tree = parser.expression();
         return parse(tree);
     }
 
@@ -46,21 +45,21 @@ public class ExpressionService {
                 return parseBinary(divisionContext, "/");
             }
             case BracketsContext bracketsContext -> {
-                return Expr.unary("()", parse(bracketsContext.getChild(1)));
+                return Operand.unary("()", parse(bracketsContext.getChild(1)));
             }
             case UnaryMinusContext unaryMinusContext -> {
-                return Expr.unary("--", parse(unaryMinusContext.getChild(0)));
+                return Operand.unary("--", parse(unaryMinusContext.getChild(0)));
             }
             case OperandContext operandContext -> {
-                 String val = operandContext.getText();
+                String val = operandContext.getText();
                 if (isNumeric(val)) {
-                    return Expr.number(Double.parseDouble(val));
+                    return Operand.number(Double.parseDouble(val));
                 } else {
-                    return Expr.variable(val);
+                    return Operand.variable(val);
                 }
             }
             default -> {
-                return Expr.empty();
+                return Operand.empty();
             }
         }
     }
@@ -68,6 +67,6 @@ public class ExpressionService {
     private Operand parseBinary(ParseTree node, String operator) {
         Operand left = parse(node.getChild(0));
         Operand right = parse(node.getChild(2));
-        return Expr.binary(operator, left, right);
+        return Operand.binary(operator, left, right);
     }
 }

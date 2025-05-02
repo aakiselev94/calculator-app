@@ -7,9 +7,8 @@ import feign.jaxrs.JAXRSContract;
 
 public class CalculatorServiceApiBuilder {
 
-    public static <T> T build(final Class<T> clazz, final String url) {
-        return builder()
-                .target(clazz, url);
+    public static <T> T build(Class<T> clazz, String url) {
+        return builder().target(clazz, url);
     }
 
     private static Feign.Builder builder() {

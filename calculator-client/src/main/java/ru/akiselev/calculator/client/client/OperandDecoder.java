@@ -34,16 +34,20 @@ public class OperandDecoder implements Decoder {
 
     @Override
     public Operand decode(Response response, Type type) throws FeignException {
-        final JsonNode jsonNode = JsonUtils.toJsonNode(response);
-        return parse(jsonNode);
+        var expression = JsonUtils.toJsonNode(response);
+        return parse(expression);
     }
 
-    private Operand parse(final JsonNode node) {
-        if (node.has(SYMBOL) && node.has(ARGS)) {
-            var operands = StreamSupport.stream(node.get(ARGS).spliterator(), false)
+    private Operand parse(JsonNode expr) {
+        if (expr.has(VAL)) {
+            return Operand.number(expr.get(VAL).asDouble());
+        } else if (expr.has(VAR)) {
+            return Operand.variable(expr.get(VAR).asText());
+        } else if (expr.has(SYMBOL) && expr.has(ARGS)) {
+            var operands = StreamSupport.stream(expr.get(ARGS).spliterator(), false)
                     .map(this::parse)
                     .toList();
-            var operator = node.get(SYMBOL).asText();
+            var operator = expr.get(SYMBOL).asText();
             if (BINARY_OPERATORS.containsKey(operator)) {
                 return Operand.binary(operator, BINARY_OPERATORS.get(operator), operands);
             } else if (UNARY_OPERATORS.containsKey(operator)) {
@@ -51,10 +55,6 @@ public class OperandDecoder implements Decoder {
             } else {
                 return Operand.empty();
             }
-        } else if (node.has(VAL)) {
-            return Operand.number(node.get(VAL).asDouble());
-        } else if (node.has(VAR)) {
-            return Operand.variable(node.get(VAR).asText());
         }
         return Operand.empty();
     }

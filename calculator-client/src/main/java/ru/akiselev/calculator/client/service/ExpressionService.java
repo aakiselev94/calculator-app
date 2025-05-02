@@ -24,19 +24,19 @@ public class ExpressionService {
 
     public double evaluateExpr(ExpressionRequest request) {
         Preconditions.checkNotNull(request, "Expression request can't be null.");
-        Preconditions.checkNotNull(request.getExpression(), "Expression can't be null.");
-        Operand expr = expressionClient.buildExpression(request.getExpression());
-        return substituteVariables(expr, request.getParams()).evaluate();
+        Preconditions.checkNotNull(request.expression(), "Expression can't be null.");
+        Operand expr = expressionClient.buildExpression(request.expression());
+        return substituteVariables(expr, request.params()).evaluate();
     }
 
     private Operand substituteVariables(Operand operand, Map<String, Double> params) {
         Preconditions.checkNotNull(params, "Parameters can't be null.");
         Preconditions.checkNotNull(operand, "Expression can't be null");
-        if (operand instanceof Variable variable) {
-            if (!params.containsKey(variable.var())) {
+        if (operand instanceof Variable var) {
+            if (!params.containsKey(var.var())) {
                 return operand;
             }
-            return Operand.number(params.get(variable.var()));
+            return Operand.number(params.get(var.var()));
         } else if (operand instanceof Expr expr) {
             var args = expr.args()
                     .stream()

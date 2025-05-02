@@ -19,7 +19,7 @@ public class ExpressionResource {
     private final ExpressionService expressionService;
 
     @POST
-    public double buildExpression(final ExpressionRequest request) {
+    public double buildExpression(ExpressionRequest request) {
         return expressionService.evaluateExpr(request);
     }
 }

@@ -14,8 +14,7 @@ public class CalculatorClientModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ExpressionClient expressionClient(final CalculatorClientConfiguration configuration) {
-        System.out.println(configuration.getCalculatorServerHost());
+    public ExpressionClient expressionClient(CalculatorClientConfiguration configuration) {
         return CalculatorServiceApiBuilder.build(ExpressionClient.class, configuration.getCalculatorServerHost());
     }
 

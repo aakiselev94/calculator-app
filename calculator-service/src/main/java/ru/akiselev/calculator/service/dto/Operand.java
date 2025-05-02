@@ -1,36 +1,25 @@
 package ru.akiselev.calculator.service.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+public sealed interface Operand permits BinaryExpression, UnaryExpression, Number, Variable, Empty {
 
-public interface Operand {}
-
-@ResourceRepresentation
-class Number implements Operand {
-    @JsonProperty("val")
-    private final double val;
-
-    @JsonCreator
-    public Number(final double val) {
-        this.val = val;
+    static Operand binary(String symbol, Operand left, Operand right) {
+        return new BinaryExpression(symbol, left, right);
     }
-}
 
-@ResourceRepresentation
-class Variable implements Operand {
-    @JsonProperty("var")
-    private final String var;
-
-    @JsonCreator
-    public Variable(final String var) {
-        this.var = var;
+    static Operand unary(String symbol, Operand operand) {
+        return new UnaryExpression(symbol, operand);
     }
-}
 
-@ResourceRepresentation
-class Empty extends Variable {
-    public Empty() {
-        super("");
+    static Operand number(double val) {
+        return new Number(val);
+    }
+
+    static Operand variable(String var) {
+        return new Variable(var);
+    }
+
+    static Operand empty() {
+        return new Empty();
     }
 }
 

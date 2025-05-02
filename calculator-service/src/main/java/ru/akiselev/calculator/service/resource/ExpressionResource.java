@@ -21,7 +21,7 @@ public class ExpressionResource {
 
     @GET
     @Path("/{expression}")
-    public Operand buildExpression(final @PathParam("expression") String expression) {
+    public Operand buildExpression(@PathParam("expression") String expression) {
         return expressionService.buildExpression(expression);
     }
 }
